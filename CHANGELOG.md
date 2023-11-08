@@ -1,3 +1,50 @@
+## [0.20.1](https://github.com/stonith404/pingvin-share/compare/v0.20.0...v0.20.1) (2023-11-05)
+
+
+### Bug Fixes
+
+* share information text color in light mode ([1138cd0](https://github.com/stonith404/pingvin-share/commit/1138cd02b0b6ac1d71c4dbc2808110c672237190))
+
+## [0.20.0](https://github.com/stonith404/pingvin-share/compare/v0.19.2...v0.20.0) (2023-11-04)
+
+
+### Features
+
+* ability to add and delete files of existing share ([#306](https://github.com/stonith404/pingvin-share/issues/306)) ([98380e2](https://github.com/stonith404/pingvin-share/commit/98380e2d48cc8ffa831d9b69cf5c0e8a40e28862))
+
+## [0.19.2](https://github.com/stonith404/pingvin-share/compare/v0.19.1...v0.19.2) (2023-11-03)
+
+
+### Features
+
+* ability to limit the max expiration of a share ([bbfc9d6](https://github.com/stonith404/pingvin-share/commit/bbfc9d6f147eea404f011c3af9d7dc7655c3d21d))
+* change totp issuer to display logo in 2FAS app ([e0fbbec](https://github.com/stonith404/pingvin-share/commit/e0fbbeca3c1a858838b20aeead52694772b7d871))
+
+
+### Bug Fixes
+
+* jwt secret changes on application restart ([33742a0](https://github.com/stonith404/pingvin-share/commit/33742a043d6549783984ae7e8a3c30f0fe3917de))
+* wrong validation of setting max share expiration to `0` ([acc35f4](https://github.com/stonith404/pingvin-share/commit/acc35f47178e230f50ce54d6f1ad5370caa3382d))
+
+## [0.19.1](https://github.com/stonith404/pingvin-share/compare/v0.19.0...v0.19.1) (2023-10-22)
+
+
+### Bug Fixes
+
+* **oauth:** fix wrong redirectUri in oidc after change appUrl ([#296](https://github.com/stonith404/pingvin-share/issues/296)) ([119b1ec](https://github.com/stonith404/pingvin-share/commit/119b1ec840ad7f4e1c7c4bb476bf1eeed91d9a1a))
+
+## [0.19.0](https://github.com/stonith404/pingvin-share/compare/v0.18.2...v0.19.0) (2023-10-22)
+
+
+### Features
+
+* **auth:** add OAuth2 login ([#276](https://github.com/stonith404/pingvin-share/issues/276)) ([02cd98f](https://github.com/stonith404/pingvin-share/commit/02cd98fa9cf9865d91494848aabaf42b19e4957b)), closes [#278](https://github.com/stonith404/pingvin-share/issues/278) [#279](https://github.com/stonith404/pingvin-share/issues/279) [#281](https://github.com/stonith404/pingvin-share/issues/281)
+
+
+### Bug Fixes
+
+* delete unfinished shares after a day ([d327bc3](https://github.com/stonith404/pingvin-share/commit/d327bc355c8583231e058731934cf51ab25d9ce5))
+
 ## [0.18.2](https://github.com/stonith404/pingvin-share/compare/v0.18.1...v0.18.2) (2023-10-09)
 
 
