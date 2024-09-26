@@ -2,15 +2,27 @@ import User from "./user.type";
 
 export type Share = {
   id: string;
+  name?: string;
   files: any;
-  creator: User;
+  creator?: User;
   description?: string;
   expiration: Date;
+  size: number;
   hasPassword: boolean;
+};
+
+export type CompletedShare = Share & {
+  /**
+   * undefined means is not reverse share
+   * true means server was send email to reverse share creator
+   * false means server was not send email to reverse share creator
+   * */
+  notifyReverseShareCreator: boolean | undefined;
 };
 
 export type CreateShare = {
   id: string;
+  name?: string;
   description?: string;
   recipients: string[];
   expiration: string;

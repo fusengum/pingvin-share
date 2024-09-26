@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -15,6 +16,9 @@ import { EmailService } from "src/email/email.service";
 import { PrismaService } from "src/prisma/prisma.service";
 import { AuthRegisterDTO } from "./dto/authRegister.dto";
 import { AuthSignInDTO } from "./dto/authSignIn.dto";
+import { LdapService } from "./ldap.service";
+import { inspect } from "util";
+import { UserSevice } from "../user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -23,9 +27,12 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
+    private ldapService: LdapService,
+    private userService: UserSevice,
   ) {}
+  private readonly logger = new Logger(AuthService.name);
 
-  async signUp(dto: AuthRegisterDTO) {
+  async signUp(dto: AuthRegisterDTO, ip: string, isAdmin?: boolean) {
     const isFirstUser = (await this.prisma.user.count()) == 0;
 
     const hash = dto.password ? await argon.hash(dto.password) : null;
@@ -35,7 +42,7 @@ export class AuthService {
           email: dto.email,
           username: dto.username,
           password: hash,
-          isAdmin: isFirstUser,
+          isAdmin: isAdmin ?? isFirstUser,
         },
       });
 
@@ -44,6 +51,7 @@ export class AuthService {
       );
       const accessToken = await this.createAccessToken(user, refreshTokenId);
 
+      this.logger.log(`User ${user.email} signed up from IP ${ip}`);
       return { accessToken, refreshToken, user };
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
@@ -57,20 +65,47 @@ export class AuthService {
     }
   }
 
-  async signIn(dto: AuthSignInDTO) {
+  async signIn(dto: AuthSignInDTO, ip: string) {
     if (!dto.email && !dto.username)
       throw new BadRequestException("Email or username is required");
 
-    const user = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ email: dto.email }, { username: dto.username }],
-      },
-    });
+    if (!this.config.get("oauth.disablePassword")) {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          OR: [{ email: dto.email }, { username: dto.username }],
+        },
+      });
 
-    if (!user || !(await argon.verify(user.password, dto.password)))
-      throw new UnauthorizedException("Wrong email or password");
+      if (user?.password && (await argon.verify(user.password, dto.password))) {
+        this.logger.log(
+          `Successful password login for user ${user.email} from IP ${ip}`,
+        );
+        return this.generateToken(user);
+      }
+    }
 
-    return this.generateToken(user);
+    if (this.config.get("ldap.enabled")) {
+      this.logger.debug(`Trying LDAP login for user ${dto.username}`);
+      const ldapUser = await this.ldapService.authenticateUser(
+        dto.username,
+        dto.password,
+      );
+      if (ldapUser) {
+        const user = await this.userService.findOrCreateFromLDAP(
+          dto.username,
+          ldapUser,
+        );
+        this.logger.log(
+          `Successful LDAP login for user ${user.email} from IP ${ip}`,
+        );
+        return this.generateToken(user);
+      }
+    }
+
+    this.logger.log(
+      `Failed login attempt for user ${dto.email || dto.username} from IP ${ip}`,
+    );
+    throw new UnauthorizedException("Wrong email or password");
   }
 
   async generateToken(user: User, isOAuth = false) {
@@ -94,12 +129,15 @@ export class AuthService {
   }
 
   async requestResetPassword(email: string) {
+    if (this.config.get("oauth.disablePassword"))
+      throw new ForbiddenException("Password sign in is disabled");
+
     const user = await this.prisma.user.findFirst({
       where: { email },
       include: { resetPasswordToken: true },
     });
 
-    if (!user) throw new BadRequestException("User not found");
+    if (!user) return;
 
     // Delete old reset password token
     if (user.resetPasswordToken) {
@@ -119,6 +157,9 @@ export class AuthService {
   }
 
   async resetPassword(token: string, newPassword: string) {
+    if (this.config.get("oauth.disablePassword"))
+      throw new ForbiddenException("Password sign in is disabled");
+
     const user = await this.prisma.user.findFirst({
       where: { resetPasswordToken: { token } },
     });
@@ -139,7 +180,7 @@ export class AuthService {
 
   async updatePassword(user: User, newPassword: string, oldPassword?: string) {
     const isPasswordValid =
-      !user.password || !(await argon.verify(user.password, oldPassword));
+      !user.password || (await argon.verify(user.password, oldPassword));
 
     if (!isPasswordValid) throw new ForbiddenException("Invalid password");
 
@@ -205,7 +246,12 @@ export class AuthService {
 
   async createRefreshToken(userId: string) {
     const { id, token } = await this.prisma.refreshToken.create({
-      data: { userId, expiresAt: moment().add(3, "months").toDate() },
+      data: {
+        userId,
+        expiresAt: moment()
+          .add(this.config.get("general.sessionDuration"), "hours")
+          .toDate(),
+      },
     });
 
     return { refreshTokenId: id, refreshToken: token };
@@ -226,14 +272,20 @@ export class AuthService {
     refreshToken?: string,
     accessToken?: string,
   ) {
+    const isSecure = this.config.get("general.appUrl").startsWith("https");
     if (accessToken)
-      response.cookie("access_token", accessToken, { sameSite: "lax" });
+      response.cookie("access_token", accessToken, {
+        sameSite: "lax",
+        secure: isSecure,
+        maxAge: 1000 * 60 * 60 * 24 * 30 * 3, // 3 months
+      });
     if (refreshToken)
       response.cookie("refresh_token", refreshToken, {
         path: "/api/auth/token",
         httpOnly: true,
         sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24 * 30 * 3,
+        secure: isSecure,
+        maxAge: 1000 * 60 * 60 * this.config.get("general.sessionDuration"),
       });
   }
 

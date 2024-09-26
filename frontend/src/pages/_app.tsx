@@ -12,6 +12,7 @@ import { getCookie, setCookie } from "cookies-next";
 import { GetServerSidePropsContext } from "next";
 import type { AppProps } from "next/app";
 import getConfig from "next/config";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { IntlProvider } from "react-intl";
@@ -28,6 +29,8 @@ import Config from "../types/config.type";
 import { CurrentUser } from "../types/user.type";
 import i18nUtil from "../utils/i18n.util";
 import userPreferences from "../utils/userPreferences.util";
+import "moment/min/locales";
+import moment from "moment";
 
 const excludeDefaultLayoutRoutes = ["/admin/config/[category]"];
 
@@ -49,7 +52,12 @@ function App({ Component, pageProps }: AppProps) {
   }, [router.pathname]);
 
   useEffect(() => {
-    setInterval(async () => await authService.refreshAccessToken(), 30 * 1000);
+    const interval = setInterval(
+      async () => await authService.refreshAccessToken(),
+      2 * 60 * 1000, // 2 minutes
+    );
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -78,59 +86,68 @@ function App({ Component, pageProps }: AppProps) {
   };
 
   const language = useRef(pageProps.language);
+  moment.locale(language.current);
 
   return (
-    <IntlProvider
-      messages={i18nUtil.getLocaleByCode(language.current)?.messages}
-      locale={language.current}
-      defaultLocale={LOCALES.ENGLISH.code}
-    >
-      <MantineProvider
-        withGlobalStyles
-        withNormalizeCSS
-        theme={{ colorScheme, ...globalStyle }}
+    <>
+      <Head>
+        <meta
+          name="viewport"
+          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
+        />
+      </Head>
+      <IntlProvider
+        messages={i18nUtil.getLocaleByCode(language.current)?.messages}
+        locale={language.current}
+        defaultLocale={LOCALES.ENGLISH.code}
       >
-        <ColorSchemeProvider
-          colorScheme={colorScheme}
-          toggleColorScheme={toggleColorScheme}
+        <MantineProvider
+          withGlobalStyles
+          withNormalizeCSS
+          theme={{ colorScheme, ...globalStyle }}
         >
-          <GlobalStyle />
-          <Notifications />
-          <ModalsProvider>
-            <ConfigContext.Provider
-              value={{
-                configVariables,
-                refresh: async () => {
-                  setConfigVariables(await configService.list());
-                },
-              }}
-            >
-              <UserContext.Provider
+          <ColorSchemeProvider
+            colorScheme={colorScheme}
+            toggleColorScheme={toggleColorScheme}
+          >
+            <GlobalStyle />
+            <Notifications />
+            <ModalsProvider>
+              <ConfigContext.Provider
                 value={{
-                  user,
-                  refreshUser: async () => {
-                    const user = await userService.getCurrentUser();
-                    setUser(user);
-                    return user;
+                  configVariables,
+                  refresh: async () => {
+                    setConfigVariables(await configService.list());
                   },
                 }}
               >
-                {excludeDefaultLayoutRoutes.includes(route) ? (
-                  <Component {...pageProps} />
-                ) : (
-                  <>
-                    <Header />
-                    <Container>
-                      <Component {...pageProps} />
-                    </Container>
-                  </>
-                )}
-              </UserContext.Provider>
-            </ConfigContext.Provider>
-          </ModalsProvider>
-        </ColorSchemeProvider>
-      </MantineProvider>
-    </IntlProvider>
+                <UserContext.Provider
+                  value={{
+                    user,
+                    refreshUser: async () => {
+                      const user = await userService.getCurrentUser();
+                      setUser(user);
+                      return user;
+                    },
+                  }}
+                >
+                  {excludeDefaultLayoutRoutes.includes(route) ? (
+                    <Component {...pageProps} />
+                  ) : (
+                    <>
+                      <Header />
+                      <Container>
+                        <Component {...pageProps} />
+                      </Container>
+                    </>
+                  )}
+                </UserContext.Provider>
+              </ConfigContext.Provider>
+            </ModalsProvider>
+          </ColorSchemeProvider>
+        </MantineProvider>
+      </IntlProvider>
+    </>
   );
 }
 

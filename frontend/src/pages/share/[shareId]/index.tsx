@@ -37,6 +37,7 @@ const Share = ({ shareId }: { shareId: string }) => {
             modals,
             t("share.error.visitor-limit-exceeded.title"),
             t("share.error.visitor-limit-exceeded.description"),
+            "go-home",
           );
         } else {
           toast.axiosError(e);
@@ -58,20 +59,33 @@ const Share = ({ shareId }: { shareId: string }) => {
               modals,
               t("share.error.removed.title"),
               e.response.data.message,
+              "go-home",
             );
           } else {
             showErrorModal(
               modals,
               t("share.error.not-found.title"),
               t("share.error.not-found.description"),
+              "go-home",
             );
           }
+        } else if (e.response.status == 403 && error == "private_share") {
+          showErrorModal(
+            modals,
+            t("share.error.access-denied.title"),
+            t("share.error.access-denied.description"),
+          );
         } else if (error == "share_password_required") {
           showEnterPasswordModal(modals, getShareToken);
         } else if (error == "share_token_required") {
           getShareToken();
         } else {
-          showErrorModal(modals, t("common.error"), t("common.error.unknown"));
+          showErrorModal(
+            modals,
+            t("common.error"),
+            t("common.error.unknown"),
+            "go-home",
+          );
         }
       });
   };
@@ -83,13 +97,13 @@ const Share = ({ shareId }: { shareId: string }) => {
   return (
     <>
       <Meta
-        title={t("share.title", { shareId })}
+        title={t("share.title", { shareId: share?.name || shareId })}
         description={t("share.description")}
       />
 
       <Group position="apart" mb="lg">
         <Box style={{ maxWidth: "70%" }}>
-          <Title order={3}>{share?.id}</Title>
+          <Title order={3}>{share?.name || share?.id}</Title>
           <Text size="sm">{share?.description}</Text>
         </Box>
         {share?.files.length > 1 && <DownloadAllButton shareId={shareId} />}

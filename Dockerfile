@@ -30,12 +30,9 @@ RUN npm run build && npm prune --production
 FROM node:20-alpine AS runner
 ENV NODE_ENV=docker
 
-# Alpine specific dependencies
-RUN apk update --no-cache
-RUN apk upgrade --no-cache
-RUN apk add --no-cache curl nginx
-
-COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+RUN apk update --no-cache \
+    && apk upgrade --no-cache \
+    && apk add --no-cache curl caddy
 
 WORKDIR /opt/app/frontend
 COPY --from=frontend-builder /opt/app/public ./public
@@ -49,13 +46,13 @@ COPY --from=backend-builder /opt/app/dist ./dist
 COPY --from=backend-builder /opt/app/prisma ./prisma
 COPY --from=backend-builder /opt/app/package.json ./
 
+COPY ./reverse-proxy /etc/caddy
+COPY ./scripts/docker-entrypoint.sh /opt/app/docker-entrypoint.sh
+
 WORKDIR /opt/app
 
 EXPOSE 3000
 
-# Add a health check to ensure the container is healthy
 HEALTHCHECK --interval=10s --timeout=3s CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Application startup
-# HOSTNAME=0.0.0.0 fixes https://github.com/vercel/next.js/issues/51684. It can be removed as soon as the issue is fixed
-CMD cp -rn /tmp/img /opt/app/frontend/public && nginx && PORT=3333 HOSTNAME=0.0.0.0 node frontend/server.js & cd backend && npm run prod
+CMD ["sh", "/opt/app/docker-entrypoint.sh"]

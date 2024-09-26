@@ -1,4 +1,4 @@
-import { setCookie } from "cookies-next";
+import { deleteCookie, setCookie } from "cookies-next";
 import mime from "mime-types";
 import { FileUploadResponse } from "../types/File.type";
 
@@ -11,12 +11,18 @@ import {
 } from "../types/share.type";
 import api from "./api.service";
 
+const list = async (): Promise<MyShare[]> => {
+  return (await api.get(`shares/all`)).data;
+};
+
 const create = async (share: CreateShare) => {
   return (await api.post("shares", share)).data;
 };
 
 const completeShare = async (id: string) => {
-  return (await api.post(`shares/${id}/complete`)).data;
+  const response = (await api.post(`shares/${id}/complete`)).data;
+  deleteCookie("reverse_share_token");
+  return response;
 };
 
 const revertComplete = async (id: string) => {
@@ -77,7 +83,7 @@ const removeFile = async (shareId: string, fileId: string) => {
 
 const uploadFile = async (
   shareId: string,
-  readerEvent: ProgressEvent<FileReader>,
+  chunk: Blob,
   file: {
     id?: string;
     name: string;
@@ -85,10 +91,8 @@ const uploadFile = async (
   chunkIndex: number,
   totalChunks: number,
 ): Promise<FileUploadResponse> => {
-  const data = readerEvent.target!.result;
-
   return (
-    await api.post(`shares/${shareId}/files`, data, {
+    await api.post(`shares/${shareId}/files`, chunk, {
       headers: { "Content-Type": "application/octet-stream" },
       params: {
         id: file.id,
@@ -105,6 +109,8 @@ const createReverseShare = async (
   maxShareSize: number,
   maxUseCount: number,
   sendEmailNotification: boolean,
+  simplified: boolean,
+  publicAccess: boolean,
 ) => {
   return (
     await api.post("reverseShares", {
@@ -112,6 +118,8 @@ const createReverseShare = async (
       maxShareSize: maxShareSize.toString(),
       maxUseCount,
       sendEmailNotification,
+      simplified,
+      publicAccess,
     })
   ).data;
 };
@@ -131,6 +139,7 @@ const removeReverseShare = async (id: string) => {
 };
 
 export default {
+  list,
   create,
   completeShare,
   revertComplete,

@@ -44,11 +44,13 @@ export default {
   "signIn.notify.totp-required.description":
     "Please enter your two-factor authentication code",
   "signIn.oauth.or": "OR",
+  "signIn.oauth.signInWith": "Sign in with",
   "signIn.oauth.github": "GitHub",
   "signIn.oauth.google": "Google",
   "signIn.oauth.microsoft": "Microsoft",
   "signIn.oauth.discord": "Discord",
   "signIn.oauth.oidc": "OpenID",
+  "signIn.error.invalid-username": "Invalid username",
 
   // END /auth/signin
 
@@ -74,7 +76,7 @@ export default {
   "resetPassword.title": "Forgot your password?",
   "resetPassword.description": "Enter your email to reset your password.",
   "resetPassword.notify.success":
-    "An email has been sent with a link to reset your password.",
+    "A message with a link to reset your password has been sent if the email exists.",
   "resetPassword.button.back": "Back to sign in page",
   "resetPassword.text.resetPassword": "Reset password",
   "resetPassword.text.enterNewPassword": "Enter your new password",
@@ -93,7 +95,8 @@ export default {
   "account.card.password.title": "Password",
   "account.card.password.old": "Old password",
   "account.card.password.new": "New password",
-  "account.card.password.noPasswordSet": "You don't have a password set. If you want to sign in with email and password you need to set a password.",
+  "account.card.password.noPasswordSet":
+    "You don't have a password set. If you want to sign in with email and password you need to set a password.",
   "account.notify.password.success": "Password changed successfully",
 
   "account.card.oauth.title": "Social login",
@@ -106,9 +109,9 @@ export default {
   "account.card.oauth.unlink": "Unlink",
   "account.card.oauth.unlinked": "Unlinked",
   "account.modal.unlink.title": "Unlink account",
-  "account.modal.unlink.description": "Unlinking your social accounts may cause you to lose your account if you don't remember your username and password.",
+  "account.modal.unlink.description":
+    "Unlinking your social accounts may cause you to lose your account if you don't remember your username and password.",
   "account.notify.oauth.unlinked.success": "Unlinked successfully",
-
 
   "account.card.security.title": "Security",
   "account.card.security.totp.enable.description":
@@ -121,7 +124,7 @@ export default {
   "account.modal.totp.step2": "Step 2: Validate your code",
   "account.modal.totp.enterManually": "Enter manually",
   "account.modal.totp.code": "Code",
-  "account.modal.totp.clickToCopy": "Click to copy",
+  "common.button.clickToCopy": "Click to copy",
   "account.modal.totp.verify": "Verify",
   "account.notify.totp.disable": "TOTP disabled successfully",
   "account.notify.totp.enable": "TOTP enabled successfully",
@@ -197,6 +200,14 @@ export default {
   "account.reverseShares.modal.send-email.description":
     "Send an email notification when a share is created with this reverse share link.",
 
+  "account.reverseShares.modal.simplified": "Simple mode",
+  "account.reverseShares.modal.simplified.description":
+    "Make it easy for the person uploading the file to share it with you. They will be able to customize only the name and description of the share.",
+
+  "account.reverseShares.modal.public-access": "Public access",
+  "account.reverseShares.modal.public-access.description":
+    "Make the created shares with this reverse share public. If disabled, only you and the creator of the share can view it.",
+
   "account.reverseShares.modal.max-use.label": "Max uses",
   "account.reverseShares.modal.max-use.description":
     "The maximum amount of times this URL can be used to create a share.",
@@ -223,6 +234,7 @@ export default {
   // /admin
   "admin.title": "Administration",
   "admin.button.users": "User management",
+  "admin.button.shares": "Share management",
   "admin.button.config": "Configuration",
   "admin.version": "Version",
   // END /admin
@@ -259,6 +271,19 @@ export default {
 
   // END /admin/users
 
+  // /admin/shares
+  "admin.shares.title": "Share management",
+  "admin.shares.table.id": "Share ID",
+  "admin.shares.table.username": "Creator",
+  "admin.shares.table.visitors": "Visitors",
+  "admin.shares.table.expires": "Expires At",
+
+  "admin.shares.edit.delete.title": "Delete share {id}",
+  "admin.shares.edit.delete.description":
+    "Do you really want to delete this share?",
+
+  // END /admin/shares
+
   // /upload
   "upload.title": "Upload",
 
@@ -288,7 +313,8 @@ export default {
 
   "upload.modal.expires.never": "never",
   "upload.modal.expires.never-long": "Never Expires",
-  "upload.modal.expires.error.too-long": "Expiration exceeds maximum expiration date of {max}.",
+  "upload.modal.expires.error.too-long":
+    "Expiration exceeds maximum expiration date of {max}.",
 
   "upload.modal.link.label": "Link",
   "upload.modal.expires.label": "Expiration",
@@ -305,8 +331,9 @@ export default {
   "upload.modal.expires.year-singular": "Year",
   "upload.modal.expires.year-plural": "Years",
 
-  "upload.modal.accordion.description.title": "Description",
-  "upload.modal.accordion.description.placeholder":
+  "upload.modal.accordion.name-and-description.title": "Name and description",
+  "upload.modal.accordion.name-and-description.name.placeholder": "Name",
+  "upload.modal.accordion.name-and-description.description.placeholder":
     "Note for the recipients of this share",
 
   "upload.modal.accordion.email.title": "Email recipients",
@@ -324,6 +351,7 @@ export default {
   "upload.modal.completed.expires-on":
     "This share will expire on {expiration}.",
   "upload.modal.completed.share-ready": "Share ready",
+  "upload.modal.completed.notified-reverse-share-creator": "We have notified the creator of the reverse share. You can also manually share this link with them through other means.",
 
   // END /upload
 
@@ -337,6 +365,8 @@ export default {
   "share.error.not-found.title": "Share not found",
   "share.error.not-found.description":
     "The share you're looking for doesn't exist.",
+  "share.error.access-denied.title": "Private share",
+  "share.error.access-denied.description": "The current account does not have permission to access this share",
 
   "share.modal.password.title": "Password required",
   "share.modal.password.description":
@@ -354,14 +384,15 @@ export default {
 
   "share.modal.file-preview.error.not-supported.title": "Preview not supported",
   "share.modal.file-preview.error.not-supported.description":
-    "A preview for thise file type is unsupported. Please download the file to view it.",
+    "A preview for this file type is unsupported. Please download the file to view it.",
 
   // END /share/[id]
 
   // /share/[id]/edit
   "share.edit.title": "Edit {shareId}",
   "share.edit.append-upload": "Append file",
-  "share.edit.notify.generic-error": "An error occurred while finishing your share.",
+  "share.edit.notify.generic-error":
+    "An error occurred while finishing your share.",
   "share.edit.notify.save-success": "Share updated successfully",
   // END /share/[id]/edit
 
@@ -381,6 +412,9 @@ export default {
   "admin.config.general.show-home-page": "Show home page",
   "admin.config.general.show-home-page.description":
     "Whether to show the home page",
+  "admin.config.general.session-duration": "Session Duration",
+  "admin.config.general.session-duration.description":
+    "Time in hours after which a user must log in again (default: 3 months).",
   "admin.config.general.logo": "Logo",
   "admin.config.general.logo.description":
     "Change your logo by uploading a new image. The image must be a PNG and should have the format 1:1.",
@@ -413,7 +447,8 @@ export default {
     "Subject of the email which gets sent when an admin invites a user.",
   "admin.config.email.invite-message": "Invite message",
   "admin.config.email.invite-message.description":
-    "Message which gets sent when an admin invites a user. {url} will be replaced with the invite URL and {password} with the password.",
+    "Message which gets sent when an admin invites a user. {url} will be replaced with the invite URL, {email} with the email and {password} with the password of the user.",
+
   "admin.config.share.allow-registration": "Allow registration",
   "admin.config.share.allow-registration.description":
     "Whether registration is allowed",
@@ -429,6 +464,12 @@ export default {
   "admin.config.share.zip-compression-level": "Zip compression level",
   "admin.config.share.zip-compression-level.description":
     "Adjust the level to balance between file size and compression speed. Valid values range from 0 to 9, with 0 being no compression and 9 being maximum compression. ",
+  "admin.config.share.chunk-size": "Chunk size",
+  "admin.config.share.chunk-size.description":
+    "Adjust the chunk size (in bytes) for your uploads to balance efficiency and reliability according to your internet connection. Smaller chunks can enhance success rates for unstable connections, while larger chunks speed up uploads for stable connections.",
+  "admin.config.share.auto-open-share-modal": "Auto open create share modal",
+  "admin.config.share.auto-open-share-modal.description":
+    "The share creation modal automatically appears when a user selects files, eliminating the need to manually click the button.",
 
   "admin.config.smtp.enabled": "Enabled",
   "admin.config.smtp.enabled.description":
@@ -445,45 +486,106 @@ export default {
   "admin.config.smtp.password": "Password",
   "admin.config.smtp.password.description": "Password of the SMTP server",
   "admin.config.smtp.button.test": "Send test email",
+  "admin.config.smtp.allow-unauthorized-certificates":
+    "Trust unauthorized SMTP server certificates",
+  "admin.config.smtp.allow-unauthorized-certificates.description":
+    "Only set this to true if you need to trust self signed certificates.",
 
   "admin.config.oauth.allow-registration": "Allow registration",
-  "admin.config.oauth.allow-registration.description": "Allow users to register via social login",
+  "admin.config.oauth.allow-registration.description":
+    "Allow users to register via social login",
   "admin.config.oauth.ignore-totp": "Ignore TOTP",
-  "admin.config.oauth.ignore-totp.description": "Whether to ignore TOTP when user using social login",
+  "admin.config.oauth.ignore-totp.description":
+    "Whether to ignore TOTP when user using social login",
+  "admin.config.oauth.disable-password": "Disable password login",
+  "admin.config.oauth.disable-password.description":
+    "Whether to disable password login\nMake sure that an OAuth provider is properly configured before activating this configuration to avoid being locked out.",
   "admin.config.oauth.github-enabled": "GitHub",
-  "admin.config.oauth.github-enabled.description": "Whether GitHub login is enabled",
+  "admin.config.oauth.github-enabled.description":
+    "Whether GitHub login is enabled",
   "admin.config.oauth.github-client-id": "GitHub Client ID",
-  "admin.config.oauth.github-client-id.description": "Client ID of the GitHub OAuth app",
+  "admin.config.oauth.github-client-id.description":
+    "Client ID of the GitHub OAuth app",
   "admin.config.oauth.github-client-secret": "GitHub Client secret",
-  "admin.config.oauth.github-client-secret.description": "Client secret of the GitHub OAuth app",
+  "admin.config.oauth.github-client-secret.description":
+    "Client secret of the GitHub OAuth app",
   "admin.config.oauth.google-enabled": "Google",
-  "admin.config.oauth.google-enabled.description": "Whether Google login is enabled",
+  "admin.config.oauth.google-enabled.description":
+    "Whether Google login is enabled",
   "admin.config.oauth.google-client-id": "Google Client ID",
-  "admin.config.oauth.google-client-id.description": "Client ID of the Google OAuth app",
+  "admin.config.oauth.google-client-id.description":
+    "Client ID of the Google OAuth app",
   "admin.config.oauth.google-client-secret": "Google Client secret",
-  "admin.config.oauth.google-client-secret.description": "Client secret of the Google OAuth app",
+  "admin.config.oauth.google-client-secret.description":
+    "Client secret of the Google OAuth app",
   "admin.config.oauth.microsoft-enabled": "Microsoft",
-  "admin.config.oauth.microsoft-enabled.description": "Whether Microsoft login is enabled",
+  "admin.config.oauth.microsoft-enabled.description":
+    "Whether Microsoft login is enabled",
   "admin.config.oauth.microsoft-tenant": "Microsoft Tenant",
-  "admin.config.oauth.microsoft-tenant.description": "Tenant ID of the Microsoft OAuth app\ncommon: Users with both a personal Microsoft account and a work or school account from Microsoft Entra ID can sign in to the application. organizations: Only users with work or school accounts from Microsoft Entra ID can sign in to the application.\nconsumers: Only users with a personal Microsoft account can sign in to the application.\ndomain name of the Microsoft Entra tenant or the tenant ID in GUID format: Only users from a specific Microsoft Entra tenant (directory members with a work or school account or directory guests with a personal Microsoft account) can sign in to the application.",
+  "admin.config.oauth.microsoft-tenant.description":
+    "Tenant ID of the Microsoft OAuth app\ncommon: Users with both a personal Microsoft account and a work or school account from Microsoft Entra ID can sign in to the application. organizations: Only users with work or school accounts from Microsoft Entra ID can sign in to the application.\nconsumers: Only users with a personal Microsoft account can sign in to the application.\ndomain name of the Microsoft Entra tenant or the tenant ID in GUID format: Only users from a specific Microsoft Entra tenant (directory members with a work or school account or directory guests with a personal Microsoft account) can sign in to the application.",
   "admin.config.oauth.microsoft-client-id": "Microsoft Client ID",
-  "admin.config.oauth.microsoft-client-id.description": "Client ID of the Microsoft OAuth app",
+  "admin.config.oauth.microsoft-client-id.description":
+    "Client ID of the Microsoft OAuth app",
   "admin.config.oauth.microsoft-client-secret": "Microsoft Client secret",
-  "admin.config.oauth.microsoft-client-secret.description": "Client secret of the Microsoft OAuth app",
+  "admin.config.oauth.microsoft-client-secret.description":
+    "Client secret of the Microsoft OAuth app",
   "admin.config.oauth.discord-enabled": "Discord",
-  "admin.config.oauth.discord-enabled.description": "Whether Discord login is enabled",
+  "admin.config.oauth.discord-enabled.description":
+    "Whether Discord login is enabled",
+  "admin.config.oauth.discord-limited-guild": "Discord limited server ID",
+  "admin.config.oauth.discord-limited-guild.description":
+    "Limit signing in to users in a specific server. Leave it blank to disable.",
   "admin.config.oauth.discord-client-id": "Discord Client ID",
-  "admin.config.oauth.discord-client-id.description": "Client ID of the Discord OAuth app",
+  "admin.config.oauth.discord-client-id.description":
+    "Client ID of the Discord OAuth app",
   "admin.config.oauth.discord-client-secret": "Discord Client secret",
-  "admin.config.oauth.discord-client-secret.description": "Client secret of the Discord OAuth app",
-  "admin.config.oauth.oidc-enabled": "OpenID",
-  "admin.config.oauth.oidc-enabled.description": "Whether OpenID login is enabled",
-  "admin.config.oauth.oidc-discovery-uri": "OpenID Discovery URI",
-  "admin.config.oauth.oidc-discovery-uri.description": "Discovery URI of the OpenID OAuth app",
-  "admin.config.oauth.oidc-client-id": "OpenID Client ID",
-  "admin.config.oauth.oidc-client-id.description": "Client ID of the OpenID OAuth app",
-  "admin.config.oauth.oidc-client-secret": "OpenID Client secret",
-  "admin.config.oauth.oidc-client-secret.description": "Client secret of the OpenID OAuth app",
+  "admin.config.oauth.discord-client-secret.description":
+    "Client secret of the Discord OAuth app",
+  "admin.config.oauth.oidc-enabled": "OpenID Connect",
+  "admin.config.oauth.oidc-enabled.description":
+    "Whether OpenID Connect login is enabled",
+  "admin.config.oauth.oidc-discovery-uri": "OpenID Connect Discovery URI",
+  "admin.config.oauth.oidc-discovery-uri.description":
+    "Discovery URI of the OpenID Connect OAuth app",
+  "admin.config.oauth.oidc-username-claim": "OpenID Connect username claim",
+  "admin.config.oauth.oidc-username-claim.description":
+    "Username claim in OpenID Connect ID token. Leave it blank if you don't know what this config is.",
+  "admin.config.oauth.oidc-role-path": "Path to roles in OpenID Connect token",
+  "admin.config.oauth.oidc-role-path.description":
+    "Must be a valid JMES path referencing an array of roles. " +
+    "Managing access rights using OpenID Connect roles is only recommended if no other identity provider is configured and password login is disabled. " +
+    "Leave it blank if you don't know what this config is.",
+  "admin.config.oauth.oidc-role-general-access": "OpenID Connect role for general access",
+  "admin.config.oauth.oidc-role-general-access.description":
+    "Role required for general access. Must be present in a user’s roles for them to log in. " +
+    "Leave it blank if you don't know what this config is.",
+  "admin.config.oauth.oidc-role-admin-access": "OpenID Connect role for admin access",
+  "admin.config.oauth.oidc-role-admin-access.description":
+    "Role required for administrative access. Must be present in a user’s roles for them to access the admin panel. " +
+    "Leave it blank if you don't know what this config is.",
+  "admin.config.oauth.oidc-client-id": "OpenID Connect Client ID",
+  "admin.config.oauth.oidc-client-id.description":
+    "Client ID of the OpenID Connect OAuth app",
+  "admin.config.oauth.oidc-client-secret": "OpenID Connect Client secret",
+  "admin.config.oauth.oidc-client-secret.description":
+    "Client secret of the OpenID Connect OAuth app",
+
+  "admin.config.category.ldap": "LDAP",
+  "admin.config.ldap.enabled": "Enabled LDAP",
+  "admin.config.ldap.enabled.description": "Use LDAP authentication for user login",
+  "admin.config.ldap.url": "Server URL",
+  "admin.config.ldap.url.description": "URL of the LDAP server",
+  "admin.config.ldap.bind-dn": "Bind DN",
+  "admin.config.ldap.bind-dn.description": "Default user which will be used to execute the user search",
+  "admin.config.ldap.bind-password": "Bind password",
+  "admin.config.ldap.bind-password.description": "Password for the user search user",
+  "admin.config.ldap.search-base": "User base",
+  "admin.config.ldap.search-base.description": "Base location, where the user search will be performed",
+  "admin.config.ldap.search-query": "User query",
+  "admin.config.ldap.search-query.description": "The user query will be used to search the 'User base' for the LDAP user. %username% can be used as the placeholder for the user given input.",
+  "admin.config.ldap.admin-groups": "Admin group",
+  "admin.config.ldap.admin-groups.description": "Group required for administrative access.",
 
   // 404
   "404.description": "Oops this page doesn't exist.",
@@ -494,17 +596,27 @@ export default {
   "error.description": "Oops!",
   "error.button.back": "Go back",
   "error.msg.default": "Something went wrong.",
-  "error.msg.access_denied": "You canceled the authentication process, please try again.",
-  "error.msg.expired_token": "The authentication process took too long, please try again.",
+  "error.msg.access_denied":
+    "You canceled the authentication process, please try again.",
+  "error.msg.expired_token":
+    "The authentication process took too long, please try again.",
+  "error.msg.invalid_token": "Internal Error",
   "error.msg.no_user": "User linked to this {0} account doesn't exist.",
   "error.msg.no_email": "Can't get email address from this {0} account.",
-  "error.msg.already_linked": "This {0} account is already linked to another account.",
+  "error.msg.already_linked":
+    "This {0} account is already linked to another account.",
   "error.msg.not_linked": "This {0} account haven't linked to any account yet.",
+  "error.msg.unverified_account":
+    "This {0} account is unverified, please try again after verification.",
+  "error.msg.user_not_allowed":
+    "You are not allowed to sign in.",
+  "error.msg.cannot_get_user_info":
+    "Can not get your user info from this {0} account.",
   "error.param.provider_github": "GitHub",
   "error.param.provider_google": "Google",
   "error.param.provider_microsoft": "Microsoft",
   "error.param.provider_discord": "Discord",
-  "error.param.provider_oidc": "OpenID",
+  "error.param.provider_oidc": "OpenID Connect",
 
   // Common translations
   "common.button.save": "Save",
@@ -518,8 +630,11 @@ export default {
   "common.button.generate": "Generate",
   "common.button.done": "Done",
   "common.text.link": "Link",
+  "common.text.navigate-to-link": "Go to the link",
   "common.text.or": "or",
+  "common.text.redirecting": "Redirecting...",
   "common.button.go-back": "Go back",
+  "common.button.go-home": "Go home",
   "common.notify.copied": "Your link was copied to the clipboard",
   "common.success": "Success",
 

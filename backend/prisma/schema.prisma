@@ -16,6 +16,7 @@ model User {
   email    String  @unique
   password String?
   isAdmin  Boolean @default(false)
+  ldapDN   String? @unique
 
   shares        Share[]
   refreshTokens RefreshToken[]
@@ -75,6 +76,7 @@ model Share {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
 
+  name          String?
   uploadLocked  Boolean  @default(false)
   isZipReady    Boolean  @default(false)
   views         Int      @default(0)
@@ -102,6 +104,8 @@ model ReverseShare {
   maxShareSize          String
   sendEmailNotification Boolean
   remainingUses         Int
+  simplified            Boolean  @default(false)
+  publicAccess          Boolean  @default(true)
 
   creatorId String
   creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)

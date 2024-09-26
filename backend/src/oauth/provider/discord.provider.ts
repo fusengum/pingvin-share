@@ -1,15 +1,18 @@
-import { OAuthProvider, OAuthToken } from "./oauthProvider.interface";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "../../config/config.service";
 import { OAuthCallbackDto } from "../dto/oauthCallback.dto";
 import { OAuthSignInDto } from "../dto/oauthSignIn.dto";
-import { ConfigService } from "../../config/config.service";
-import { BadRequestException, Injectable } from "@nestjs/common";
-import fetch from "node-fetch";
-
+import { ErrorPageException } from "../exceptions/errorPage.exception";
+import { OAuthProvider, OAuthToken } from "./oauthProvider.interface";
 @Injectable()
 export class DiscordProvider implements OAuthProvider<DiscordToken> {
   constructor(private config: ConfigService) {}
 
   getAuthEndpoint(state: string): Promise<string> {
+    let scope = "identify email";
+    if (this.config.get("oauth.discord-limitedGuild")) {
+      scope += " guilds";
+    }
     return Promise.resolve(
       "https://discord.com/api/oauth2/authorize?" +
         new URLSearchParams({
@@ -17,8 +20,8 @@ export class DiscordProvider implements OAuthProvider<DiscordToken> {
           redirect_uri:
             this.config.get("general.appUrl") + "/api/oauth/callback/discord",
           response_type: "code",
-          state: state,
-          scope: "identify email",
+          state,
+          scope,
         }).toString(),
     );
   }
@@ -48,7 +51,7 @@ export class DiscordProvider implements OAuthProvider<DiscordToken> {
           this.config.get("general.appUrl") + "/api/oauth/callback/discord",
       }),
     });
-    const token: DiscordToken = await res.json();
+    const token = (await res.json()) as DiscordToken;
     return {
       accessToken: token.access_token,
       refreshToken: token.refresh_token,
@@ -69,7 +72,14 @@ export class DiscordProvider implements OAuthProvider<DiscordToken> {
     });
     const user = (await res.json()) as DiscordUser;
     if (user.verified === false) {
-      throw new BadRequestException("Unverified account.");
+      throw new ErrorPageException("unverified_account", undefined, [
+        "provider_discord",
+      ]);
+    }
+
+    const guild = this.config.get("oauth.discord-limitedGuild");
+    if (guild) {
+      await this.checkLimitedGuild(token, guild);
     }
 
     return {
@@ -78,6 +88,24 @@ export class DiscordProvider implements OAuthProvider<DiscordToken> {
       providerUsername: user.global_name ?? user.username,
       email: user.email,
     };
+  }
+
+  async checkLimitedGuild(token: OAuthToken<DiscordToken>, guildId: string) {
+    try {
+      const res = await fetch("https://discord.com/api/v10/users/@me/guilds", {
+        method: "get",
+        headers: {
+          Accept: "application/json",
+          Authorization: `${token.tokenType || "Bearer"} ${token.accessToken}`,
+        },
+      });
+      const guilds = (await res.json()) as DiscordPartialGuild[];
+      if (!guilds.some((guild) => guild.id === guildId)) {
+        throw new ErrorPageException("user_not_allowed");
+      }
+    } catch {
+      throw new ErrorPageException("user_not_allowed");
+    }
   }
 }
 
@@ -95,4 +123,13 @@ export interface DiscordUser {
   global_name: string;
   email: string;
   verified: boolean;
+}
+
+export interface DiscordPartialGuild {
+  id: string;
+  name: string;
+  icon: string;
+  owner: boolean;
+  permissions: string;
+  features: string[];
 }

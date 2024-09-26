@@ -1,17 +1,21 @@
-import { BadRequestException } from "@nestjs/common";
-import fetch from "node-fetch";
-import { ConfigService } from "../../config/config.service";
+import { InternalServerErrorException, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Cache } from "cache-manager";
+import * as jmespath from "jmespath";
 import { nanoid } from "nanoid";
+import { ConfigService } from "../../config/config.service";
 import { OAuthCallbackDto } from "../dto/oauthCallback.dto";
-import { OAuthProvider, OAuthToken } from "./oauthProvider.interface";
 import { OAuthSignInDto } from "../dto/oauthSignIn.dto";
+import { ErrorPageException } from "../exceptions/errorPage.exception";
+import { OAuthProvider, OAuthToken } from "./oauthProvider.interface";
 
 export abstract class GenericOidcProvider implements OAuthProvider<OidcToken> {
   protected discoveryUri: string;
   private configuration: OidcConfigurationCache;
   private jwk: OidcJwkCache;
+  private logger: Logger = new Logger(
+    Object.getPrototypeOf(this).constructor.name,
+  );
 
   protected constructor(
     protected name: string,
@@ -21,7 +25,7 @@ export abstract class GenericOidcProvider implements OAuthProvider<OidcToken> {
     protected cache: Cache,
   ) {
     this.discoveryUri = this.getDiscoveryUri();
-    this.config.addListener("update", (key: string, _: unknown) => {
+    this.config.addListener("update", (key: string) => {
       if (this.keyOfConfigUpdateEvents.includes(key)) {
         this.deinit();
         this.discoveryUri = this.getDiscoveryUri();
@@ -90,7 +94,7 @@ export abstract class GenericOidcProvider implements OAuthProvider<OidcToken> {
         redirect_uri: this.getRedirectUri(),
       }).toString(),
     });
-    const token: OidcToken = await res.json();
+    const token = (await res.json()) as OidcToken;
     return {
       accessToken: token.access_token,
       expiresIn: token.expires_in,
@@ -104,22 +108,95 @@ export abstract class GenericOidcProvider implements OAuthProvider<OidcToken> {
   async getUserInfo(
     token: OAuthToken<OidcToken>,
     query: OAuthCallbackDto,
+    claim?: string,
+    roleConfig?: {
+      path?: string;
+      generalAccess?: string;
+      adminAccess?: string;
+    },
   ): Promise<OAuthSignInDto> {
     const idTokenData = this.decodeIdToken(token.idToken);
-    // maybe it's not necessary to verify the id token since it's directly obtained from the provider
+
+    if (!idTokenData) {
+      this.logger.error(
+        `Can not get ID Token from response ${JSON.stringify(token.rawToken, undefined, 2)}`,
+      );
+      throw new InternalServerErrorException();
+    }
 
     const key = `oauth-${this.name}-nonce-${query.state}`;
     const nonce = await this.cache.get(key);
     await this.cache.del(key);
     if (nonce !== idTokenData.nonce) {
-      throw new BadRequestException("Invalid token");
+      this.logger.error(
+        `Invalid nonce. Expected ${nonce}, but got ${idTokenData.nonce}`,
+      );
+      throw new ErrorPageException("invalid_token");
+    }
+
+    const username = claim
+      ? idTokenData[claim]
+      : idTokenData.preferred_username ||
+        idTokenData.name ||
+        idTokenData.nickname;
+
+    let isAdmin: boolean;
+
+    if (roleConfig?.path) {
+      // A path to read roles from the token is configured
+      let roles: string[] | null;
+      try {
+        roles = jmespath.search(idTokenData, roleConfig.path);
+      } catch (e) {
+        roles = null;
+      }
+      if (Array.isArray(roles)) {
+        // Roles are found in the token
+        if (
+          roleConfig.generalAccess &&
+          !roles.includes(roleConfig.generalAccess)
+        ) {
+          // Role for general access is configured and the user does not have it
+          this.logger.error(
+            `User roles ${roles} do not include ${roleConfig.generalAccess}`,
+          );
+          throw new ErrorPageException("user_not_allowed");
+        }
+        if (roleConfig.adminAccess) {
+          // Role for admin access is configured
+          isAdmin = roles.includes(roleConfig.adminAccess);
+        }
+      } else {
+        this.logger.error(
+          `Roles not found at path ${roleConfig.path} in ID Token ${JSON.stringify(
+            idTokenData,
+            undefined,
+            2,
+          )}`,
+        );
+        throw new ErrorPageException("user_not_allowed");
+      }
+    }
+
+    if (!username) {
+      this.logger.error(
+        `Can not get username from ID Token ${JSON.stringify(
+          idTokenData,
+          undefined,
+          2,
+        )}`,
+      );
+      throw new ErrorPageException("cannot_get_user_info", undefined, [
+        `provider_${this.name}`,
+      ]);
     }
 
     return {
       provider: this.name as any,
       email: idTokenData.email,
       providerId: idTokenData.sub,
-      providerUsername: idTokenData.name,
+      providerUsername: username,
+      ...(isAdmin !== undefined && { isAdmin }),
     };
   }
 
@@ -132,7 +209,7 @@ export abstract class GenericOidcProvider implements OAuthProvider<OidcToken> {
       : Date.now() + 1000 * 60 * 60 * 24;
     this.configuration = {
       expires,
-      data: await res.json(),
+      data: (await res.json()) as OidcConfiguration,
     };
   }
 
@@ -204,5 +281,7 @@ export interface OidcIdToken {
   iat: number;
   email: string;
   name: string;
+  nickname: string;
+  preferred_username: string;
   nonce: string;
 }
